@@ -25,6 +25,7 @@ const SEED_USERS = [
 ];
 
 const SEED_QUESTIONS = [
+  // 1. CEO Fraud / BEC Wire Transfer
   {
     id: 1,
     scenario_text: "You receive an urgent email from your CEO requesting an immediate wire transfer for a confidential vendor acquisition while they are in an overseas board meeting.",
@@ -64,6 +65,8 @@ const SEED_QUESTIONS = [
     correct_index: 1,
     educational_feedback: "This is a classic Business Email Compromise (BEC) attack. Always execute out-of-band verification via established multi-party approval protocols."
   },
+
+  // 2. Microsoft 365 Credential Harvest
   {
     id: 2,
     scenario_text: "An automated notification claiming your Microsoft 365 password is expiring in 2 hours arrives in your inbox with a link to retain your existing credentials.",
@@ -102,6 +105,8 @@ const SEED_QUESTIONS = [
     correct_index: 1,
     educational_feedback: "Attackers leverage urgency to harvest corporate credentials. Real identity providers never provide links to 'keep your existing password'."
   },
+
+  // 3. Legitimate HR Benefits Policy (True Negative)
   {
     id: 3,
     scenario_text: "An annual health and dental benefits enrollment reminder is sent from the internal People & Culture team directing staff to the company intranet.",
@@ -136,8 +141,144 @@ const SEED_QUESTIONS = [
     correct_index: 0,
     educational_feedback: "This is a legitimate internal email: sender address matches the official company domain, authentication headers pass, and links point directly to the company intranet."
   },
+
+  // 4. DocuSign Counterfeit Signature Request
   {
     id: 4,
+    scenario_text: "You receive an automated DocuSign notification requesting you to review and sign an 'Amended Non-Disclosure Agreement' from an external unknown sender.",
+    category: "Phishing",
+    type: "email_inspection",
+    difficulty: "Intermediate",
+    email_metadata: {
+      title: "DocuSign: Electronic Document Signature Required",
+      is_phishing: true,
+      sender_name: "DocuSign System Mailer",
+      sender_email: "docusign-notifications@service-docusign-esign99.com",
+      reply_to: "legal-review@service-docusign-esign99.com",
+      subject: "Please DocuSign: 2026 Executive NDA & IP Assignment.pdf",
+      date: "Today, 11:20 AM",
+      spf_status: "SOFTFAIL (Domain unverified)",
+      dkim_status: "FAIL (Signature invalid)",
+      real_link_target: "https://docusign.net.app-sign-verify88.cc/auth/login",
+      body_text: "David Sterling via DocuSign has sent you a document to review and sign.\n\nPlease review and complete the document within 24 hours:\n\n[Review and Sign Document]\n\nDocuSign Secure Electronic Signatures",
+      red_flags: [
+        { id: "rf-1", target: "sender", label: "Lookalike Brand Domain", description: "Sender domain is not official DocuSign." },
+        { id: "rf-2", target: "link", label: "Obfuscated Redirection Target", description: "Hyperlink points to an external harvesting endpoint." }
+      ],
+      educational_debrief: {
+        summary: "Brand Impersonation & Fake Electronic Signature Phishing.",
+        explanation: "Attackers clone DocuSign branding to trick employees into providing corporate credentials.",
+        key_takeaways: ["Verify sender domains on e-signature notifications.", "Check official DocuSign portal directly."]
+      }
+    },
+    options: [
+      "Click 'Review and Sign Document' and enter your single-sign-on credentials.",
+      "Inspect the sender domain and report the email as malicious brand impersonation.",
+      "Forward the document to personal webmail.",
+      "Reply to the email asking who authorized the document."
+    ],
+    correct_index: 1,
+    educational_feedback: "Attackers frequently spoof e-signature services like DocuSign. Authentic DocuSign notifications originate from @docusign.net or @docusign.com."
+  },
+
+  // 5. Quishing / QR Code MFA Trap
+  {
+    id: 5,
+    scenario_text: "An IT advisory email instructs staff to scan an attached QR code using their smartphone camera to sync their multi-factor Authenticator app credentials.",
+    category: "Phishing",
+    type: "email_inspection",
+    difficulty: "Advanced",
+    email_metadata: {
+      title: "IT Security Notice: Mandatory MFA System Migration",
+      is_phishing: true,
+      sender_name: "Enterprise IT Service Hub",
+      sender_email: "servicedesk@securemind-portal-it.com",
+      reply_to: "mfa-support@securemind-portal-it.com",
+      subject: "Mandatory Action: Scan QR Code to sync your Enterprise 2FA token",
+      date: "Today, 01:10 PM",
+      spf_status: "NEUTRAL",
+      dkim_status: "Unsigned",
+      real_link_target: "https://mfa-session-sync.net/login?token=8831",
+      body_text: "Security Operations is upgrading enterprise multi-factor authentication.\n\nTo ensure uninterrupted VPN and email access, please scan the QR code below using your mobile device:\n\n[📷 Scan Authenticator Migration QR Code]\n\nFailure to complete this by 5:00 PM will result in account suspension.",
+      red_flags: [
+        { id: "rf-1", target: "technique", label: "Quishing (QR Phishing)", description: "Attackers use QR codes to bypass email spam filters." },
+        { id: "rf-2", target: "urgency", label: "Coercive Account Suspension Threat", description: "Uses threats of lockout to bypass scrutiny." }
+      ],
+      educational_debrief: {
+        summary: "Quishing (QR Code Phishing).",
+        explanation: "Attackers embed QR codes to bypass gateway security scanners.",
+        key_takeaways: ["Never scan QR codes in unsolicited emails to update security credentials."]
+      }
+    },
+    options: [
+      "Scan the QR code with your mobile phone camera and enter your corporate password.",
+      "Report the email to the Security Team and do not scan the embedded QR code.",
+      "Print the email and scan it using the office scanner.",
+      "Save the QR code image to your desktop."
+    ],
+    correct_index: 1,
+    educational_feedback: "'Quishing' is designed to evade corporate email security filters. Never scan QR codes in emails to authenticate."
+  },
+
+  // 6. Direct Deposit & Payroll Modification
+  {
+    id: 6,
+    scenario_text: "An email claiming to be from Payroll requests you to confirm your direct deposit banking details prior to monthly payroll processing.",
+    category: "Phishing",
+    type: "email_inspection",
+    difficulty: "Intermediate",
+    email_metadata: {
+      title: "Payroll Discrepancy Notice",
+      is_phishing: true,
+      sender_name: "Corporate Payroll Services",
+      sender_email: "payroll-update@securemind-hr-portal.com",
+      reply_to: "payroll-override@securemind-hr-portal.com",
+      subject: "Action Required: Verify Direct Deposit Account Details",
+      date: "Today, 03:45 PM",
+      spf_status: "FAIL",
+      dkim_status: "Unsigned",
+      real_link_target: "https://payroll-verify.securemind-hr-portal.com/direct-deposit",
+      body_text: "Attention Employee,\n\nDuring our quarterly audit, an error was detected with your direct deposit bank account. Please verify your routing and account number to avoid paycheck delays.\n\n[Update Direct Deposit Information]\n\nHuman Resources & Payroll",
+      red_flags: [
+        { id: "rf-1", target: "sender", label: "Lookalike Domain", description: "Sender uses an unverified external domain." }
+      ],
+      educational_debrief: {
+        summary: "Payroll Divergence / Direct Deposit Phishing.",
+        explanation: "Attackers target payroll credentials to redirect salaries into money mule accounts.",
+        key_takeaways: ["Only modify payroll details inside your official HRIS system."]
+      }
+    },
+    options: [
+      "Click the link and re-enter your bank account and routing number immediately.",
+      "Report the email as phishing and verify details directly in your official HR portal.",
+      "Reply with your voided check attached.",
+      "Forward the email to coworkers."
+    ],
+    correct_index: 1,
+    educational_feedback: "Payroll divergence attacks seek to redirect employee salaries. Always access payroll systems directly through bookmarked HR portals."
+  },
+
+  // 7. Supply Chain Vendor Banking Coordinate Alteration
+  {
+    id: 7,
+    scenario_text: "A regular hardware supplier sends an email stating their bank routing coordinates have changed and requests all pending invoices be paid to a new account.",
+    category: "Social Engineering",
+    type: "multiple_choice",
+    difficulty: "Advanced",
+    email_metadata: null,
+    options: [
+      "Update the accounting software with the new bank details provided in the email and release payment.",
+      "Execute out-of-band verification by calling the vendor's known finance director at their pre-established verified telephone number.",
+      "Reply to the email asking the sender to confirm that the new bank account is correct.",
+      "Wait 30 days and pay the old bank account anyway."
+    ],
+    correct_index: 1,
+    educational_feedback: "This is Vendor Email Compromise (VEC). Never alter vendor payment coordinates without verbal out-of-band confirmation with verified vendor contacts."
+  },
+
+  // 8. MFA Fatigue / Prompt Bombing
+  {
+    id: 8,
     scenario_text: "You receive a rapid succession of 15 push notifications on your phone asking you to approve an authentication request from an unknown device in Eastern Europe at 2:00 AM.",
     category: "Credential Hygiene",
     type: "multiple_choice",
@@ -145,48 +286,72 @@ const SEED_QUESTIONS = [
     email_metadata: null,
     options: [
       "Approve the notification so your phone stops buzzing and go back to sleep.",
-      "Deny the request, immediately change your password, and report the incident to the Security Operations Center (SOC).",
+      "Deny the request, immediately change your corporate password, and report the incident to the Security Operations Center (SOC).",
       "Turn off your phone's Wi-Fi and ignore it until the morning.",
       "Approve just once to see which application is requesting access."
     ],
     correct_index: 1,
     educational_feedback: "This is an 'MFA Fatigue' or 'Prompt Bombing' attack. Denying the prompt, reporting the intrusion, and changing your credentials stops the breach."
   },
+
+  // 9. AI Voice Cloning / Deepfake Vishing
   {
-    id: 5,
-    scenario_text: "An incoming caller claims to be 'Alex from the Enterprise IT Service Desk'. They state your workstation has been flagged for malware and ask you to read back the 6-digit one-time code sent to your mobile phone.",
+    id: 9,
+    scenario_text: "You receive an urgent phone call from someone whose voice sounds identical to your Chief Financial Officer requesting an immediate wire transfer for an overseas acquisition.",
     category: "Social Engineering",
     type: "multiple_choice",
     difficulty: "Advanced",
     email_metadata: null,
     options: [
-      "Read the code to Alex because legitimate IT support personnel often need it for remote debugging.",
-      "Ask Alex for their employee ID and immediately share the code once provided.",
-      "Refuse to provide the OTP, hang up, and call the official IT Helpdesk using the verified internal directory number.",
-      "Give them a fake code first to see if they can detect it."
+      "Process the wire transfer immediately since you recognized the CFO's voice.",
+      "Hang up, refuse the transaction, and contact the CFO or finance supervisor via internal corporate Slack or verified office phone.",
+      "Text the bank transfer confirmation to the caller's mobile number.",
+      "Ask the caller to email their driver's license before transferring funds."
     ],
-    correct_index: 2,
-    educational_feedback: "Legitimate IT staff will NEVER ask for your One-Time Passcode (OTP), passwords, or 2FA credentials. This is Voice Phishing (Vishing)."
+    correct_index: 1,
+    educational_feedback: "Generative AI voice cloning allows attackers to replicate executive voices with high fidelity. Always verify unexpected financial instructions out-of-band."
   },
+
+  // 10. IT Helpdesk Remote Access Vishing
   {
-    id: 6,
-    scenario_text: "While walking through the employee cafeteria, you notice a brand-new 64GB USB thumb drive labeled 'Q4 Executive Salary & Bonus Review.xlsx'.",
+    id: 10,
+    scenario_text: "An incoming caller claims to be 'Alex from the Enterprise IT Service Desk'. They state your workstation has been flagged for malware and ask you to install AnyDesk so they can remediate it.",
+    category: "Social Engineering",
+    type: "multiple_choice",
+    difficulty: "Intermediate",
+    email_metadata: null,
+    options: [
+      "Download and install AnyDesk and provide the connection ID to Alex.",
+      "Refuse the request, terminate the call, and contact the official IT Helpdesk using the verified internal directory number.",
+      "Ask Alex for his employee badge number and proceed once he provides it.",
+      "Leave your computer unlocked and let them take over."
+    ],
+    correct_index: 1,
+    educational_feedback: "Unsolicited callers requesting remote desktop tool installations are conducting tech support vishing scams to gain initial network persistence."
+  },
+
+  // 11. Baiting / USB Drop in Parking Lot
+  {
+    id: 11,
+    scenario_text: "While walking through the employee parking lot, you find an attractive high-speed 128GB USB drive labeled 'Confidential - Executive Compensation 2026.xlsx'.",
     category: "Physical Security",
     type: "multiple_choice",
     difficulty: "Beginner",
     email_metadata: null,
     options: [
-      "Plug it into your corporate laptop to find the owner's name in the document properties.",
-      "Plug it into an isolated test computer in the IT room without informing anyone.",
-      "Do not connect the drive to any machine; deliver it directly to Corporate Physical Security / IT Incident Response.",
-      "Format the USB drive immediately so you can use it for your own presentations."
+      "Plug it into your corporate laptop to find the owner's name in document properties.",
+      "Plug it into a coworker's computer to test if it contains viruses.",
+      "Do not plug the USB into any machine; deliver it directly to Corporate Physical Security / IT Incident Response.",
+      "Format the drive immediately so you can use it for personal presentations."
     ],
     correct_index: 2,
-    educational_feedback: "This is a 'Baiting' / 'USB Drop' attack. Rogue flash drives can execute malicious payloads automatically upon insertion. Never connect untrusted media."
+    educational_feedback: "This is a 'USB Baiting' attack. Rogue flash drives can execute keystroke injection payloads or deploy ransomware instantly upon insertion."
   },
+
+  // 12. Macro Ransomware Invoice
   {
-    id: 7,
-    scenario_text: "A regular vendor sends an invoice as an attached .xlsm (macro-enabled) file. Upon opening, a yellow banner reads: 'Macros have been disabled. Click Enable Content to view your encrypted invoice.'",
+    id: 12,
+    scenario_text: "A vendor sends an invoice as an attached .xlsm (macro-enabled) file. Upon opening, a yellow banner reads: 'Macros have been disabled. Click Enable Content to view your encrypted invoice.'",
     category: "Ransomware",
     type: "multiple_choice",
     difficulty: "Intermediate",
@@ -198,10 +363,48 @@ const SEED_QUESTIONS = [
       "Disable your antivirus software temporarily to allow the macro to finish calculating."
     ],
     correct_index: 1,
-    educational_feedback: "Macro-enabled office documents are a primary delivery vehicle for ransomware. Genuine invoices rarely require VBA macro execution."
+    educational_feedback: "Macro-enabled documents are a primary delivery vehicle for ransomware. Genuine invoices rarely require VBA macro execution."
   },
+
+  // 13. Public Wi-Fi & Evil Twin Attack
   {
-    id: 8,
+    id: 13,
+    scenario_text: "While working at an airport coffee shop, you notice two open Wi-Fi networks: 'Airport_Free_WiFi' and 'Airport_Free_WiFi_HighSpeed'.",
+    category: "Credential Hygiene",
+    type: "multiple_choice",
+    difficulty: "Intermediate",
+    email_metadata: null,
+    options: [
+      "Connect to the High Speed network and log into corporate servers without a VPN.",
+      "Connect to the network and immediately enable your corporate Virtual Private Network (VPN) with full-tunnel encryption, or use your phone's cellular hotspot.",
+      "Disable your firewall to ensure smooth streaming.",
+      "Accept any invalid SSL certificate warnings when loading web pages."
+    ],
+    correct_index: 1,
+    educational_feedback: "Public Wi-Fi networks are susceptible to rogue access points and packet sniffing. Always use corporate VPN encryption on untrusted public networks."
+  },
+
+  // 14. Shadow IT & Confidential Data in Public AI
+  {
+    id: 14,
+    scenario_text: "You are writing a confidential client proposal and want to summarize 50 pages of proprietary financial data and source code using a free public AI chatbot.",
+    category: "Social Engineering",
+    type: "multiple_choice",
+    difficulty: "Advanced",
+    email_metadata: null,
+    options: [
+      "Paste the entire confidential document into the public AI tool since prompts are automatically deleted.",
+      "Refrain from pasting confidential data or source code into unapproved public AI tools; consult the corporate Generative AI policy for enterprise-approved environments.",
+      "Change the client name to a pseudonym and paste the raw source code and financial balances.",
+      "Share the AI login with all team members."
+    ],
+    correct_index: 1,
+    educational_feedback: "Pasting proprietary code or client PII into unapproved consumer AI platforms creates serious data leakage and compliance violations (GDPR, SOC 2)."
+  },
+
+  // 15. Credential Sharing on Team Slack
+  {
+    id: 15,
     scenario_text: "A customer success teammate messages you on Slack: 'Hey, I lost my login to our customer database. Can you DM me your username and password real quick? I have a client on the phone!'",
     category: "Credential Hygiene",
     type: "multiple_choice",
@@ -215,39 +418,165 @@ const SEED_QUESTIONS = [
     ],
     correct_index: 1,
     educational_feedback: "Sharing account credentials violates individual accountability and increases breach risk. Users must never share passwords."
+  },
+
+  // 16. Shoulder Surfing & Privacy Screen
+  {
+    id: 16,
+    scenario_text: "You are working on a high-speed train reviewing unreleased quarterly financial earnings on your laptop with passengers sitting directly behind and beside you.",
+    category: "Physical Security",
+    type: "multiple_choice",
+    difficulty: "Beginner",
+    email_metadata: null,
+    options: [
+      "Continue working at full screen brightness since strangers are unlikely to understand corporate financial statements.",
+      "Use a privacy screen filter, minimize screen brightness, and avoid displaying highly sensitive trade secrets or customer PII in public view.",
+      "Ask the person sitting next to you to look away.",
+      "Save the confidential file to an unencrypted public Dropbox."
+    ],
+    correct_index: 1,
+    educational_feedback: "'Shoulder Surfing' is a prevalent visual social engineering threat. When working in public spaces, privacy screen filters and situational awareness are essential."
+  },
+
+  // 17. Illicit Cloud OAuth App Consent Grant
+  {
+    id: 17,
+    scenario_text: "A third-party web application asks you to sign in with your corporate account and prompts: 'App requires permission to Read all emails, Send email on your behalf, and Access all OneDrive files'.",
+    category: "Credential Hygiene",
+    type: "multiple_choice",
+    difficulty: "Advanced",
+    email_metadata: null,
+    options: [
+      "Grant permission immediately so you can test the free tool.",
+      "Deny the consent request and report the third-party application to Enterprise Security for OAuth permission review.",
+      "Accept permissions but revoke them next year.",
+      "Create a fake corporate account to bypass the warning."
+    ],
+    correct_index: 1,
+    educational_feedback: "This is an 'Illicit Consent Grant' attack. Rogue third-party cloud apps trick users into granting permanent API access tokens without needing their password."
+  },
+
+  // 18. Smishing (SMS Package Delivery Phishing)
+  {
+    id: 18,
+    scenario_text: "You receive an SMS on your work phone: 'DHL: Your corporate delivery #8821 could not be completed due to unpaid customs fee ($1.50). Update address at: http://dhl-tracking-pay2.com'",
+    category: "Phishing",
+    type: "multiple_choice",
+    difficulty: "Beginner",
+    email_metadata: null,
+    options: [
+      "Click the link and enter your corporate credit card details to pay the $1.50 fee.",
+      "Delete the SMS, do not click the link, and report the smishing attempt to Security Operations.",
+      "Reply 'STOP' with your credit card number.",
+      "Forward the text to all colleagues."
+    ],
+    correct_index: 1,
+    educational_feedback: "Smishing (SMS Phishing) exploits parcel delivery notifications to steal credit card details and personal identity information."
+  },
+
+  // 19. Malicious Browser Extension Permission Creep
+  {
+    id: 19,
+    scenario_text: "A simple 'PDF Viewer' browser extension you installed 6 months ago updates and displays a prompt: 'Extension now requires permission to read and change all data on all websites you visit'.",
+    category: "Credential Hygiene",
+    type: "multiple_choice",
+    difficulty: "Intermediate",
+    email_metadata: null,
+    options: [
+      "Approve the new permissions because extension updates are vetted automatically.",
+      "Reject the permissions and immediately uninstall the browser extension.",
+      "Allow permissions in incognito mode only.",
+      "Disable your browser security settings."
+    ],
+    correct_index: 1,
+    educational_feedback: "Attackers buy abandoned browser extensions with large install bases and push updates with malicious keystroke logging or session cookie exfiltration capabilities."
+  },
+
+  // 20. Public Git Repository Secrets Leak
+  {
+    id: 20,
+    scenario_text: "While committing code to a public GitHub repository, an engineer accidentally includes an unencrypted `.env` file containing production database credentials and AWS access keys.",
+    category: "Ransomware",
+    type: "multiple_choice",
+    difficulty: "Advanced",
+    email_metadata: null,
+    options: [
+      "Leave the commit as is since the repository has zero followers.",
+      "Immediately rotate/invalidate the exposed credentials, notify Security Incident Response, and purge the sensitive git commit history.",
+      "Push a new commit that deletes the file without rotating the credentials.",
+      "Make the repository private and assume the keys were never seen."
+    ],
+    correct_index: 1,
+    educational_feedback: "Automated bot scanners index public git commits within seconds. Once a secret is pushed publicly, it must be considered compromised and rotated immediately."
+  },
+
+  // 21. Disposal of Printed Financial & PII Documents
+  {
+    id: 21,
+    scenario_text: "You finish reviewing a 20-page printed report containing customer credit card numbers, home addresses, and Social Security Numbers.",
+    category: "Physical Security",
+    type: "multiple_choice",
+    difficulty: "Beginner",
+    email_metadata: null,
+    options: [
+      "Toss the document into the standard paper recycling bin near your desk.",
+      "Place the document into the locked cross-cut confidential shredding security console.",
+      "Leave it on top of the office printer for the next person.",
+      "Take it home in your backpack to throw away."
+    ],
+    correct_index: 1,
+    educational_feedback: "Physical dumpster diving is an active social engineering vector. Printed documents containing PII or financial data must always be destroyed in locked shredding consoles."
+  },
+
+  // 22. Accidental Phishing Click Incident Reporting
+  {
+    id: 22,
+    scenario_text: "You accidentally click a suspicious email link and enter your corporate password on an unusual web page before realizing it was a phishing site.",
+    category: "Social Engineering",
+    type: "multiple_choice",
+    difficulty: "Intermediate",
+    email_metadata: null,
+    options: [
+      "Close the browser tab, say nothing, and hope nobody notices.",
+      "Immediately disconnect your device from the network, change your password from another device, and notify the Security Team immediately.",
+      "Restart your laptop and wait until tomorrow.",
+      "Clear your browser history to erase evidence of the click."
+    ],
+    correct_index: 1,
+    educational_feedback: "Rapid transparent incident reporting allows security teams to revoke compromised sessions, isolate hosts, and prevent enterprise-wide lateral movement within minutes."
   }
 ];
 
 function getStoredUsers() {
-  const data = localStorage.getItem('securemind_db_users_v2');
+  const data = localStorage.getItem('securemind_db_users_v3');
   if (data) {
     try {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     } catch (e) {}
   }
-  localStorage.setItem('securemind_db_users_v2', JSON.stringify(SEED_USERS));
+  localStorage.setItem('securemind_db_users_v3', JSON.stringify(SEED_USERS));
   return SEED_USERS;
 }
 
 function saveStoredUsers(users) {
-  localStorage.setItem('securemind_db_users_v2', JSON.stringify(users));
+  localStorage.setItem('securemind_db_users_v3', JSON.stringify(users));
 }
 
 function getStoredQuestions() {
-  const data = localStorage.getItem('securemind_db_questions');
+  const data = localStorage.getItem('securemind_db_questions_v3');
   if (data) {
     try {
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length >= 20) return parsed;
     } catch (e) {}
   }
-  localStorage.setItem('securemind_db_questions', JSON.stringify(SEED_QUESTIONS));
+  localStorage.setItem('securemind_db_questions_v3', JSON.stringify(SEED_QUESTIONS));
   return SEED_QUESTIONS;
 }
 
 function getStoredResults() {
-  const data = localStorage.getItem('securemind_db_results_v2');
+  const data = localStorage.getItem('securemind_db_results_v3');
   if (data) {
     try {
       const parsed = JSON.parse(data);
@@ -255,7 +584,7 @@ function getStoredResults() {
     } catch (e) {}
   }
   const initial = [];
-  localStorage.setItem('securemind_db_results_v2', JSON.stringify(initial));
+  localStorage.setItem('securemind_db_results_v3', JSON.stringify(initial));
   return initial;
 }
 
@@ -287,6 +616,7 @@ export const apiService = {
         department: profileData.department,
         role: profileData.role || (emailClean.includes('admin') ? 'admin' : 'staff'),
         is_active: true,
+        created_at: new Date().toISOString(),
         completed_trainings: 0,
         average_score: 0.0,
         pass_rate: 0.0
@@ -437,7 +767,7 @@ export const apiService = {
     const questions = getStoredQuestions();
     const newQ = { id: Date.now(), ...questionData };
     questions.push(newQ);
-    localStorage.setItem('securemind_db_questions', JSON.stringify(questions));
+    localStorage.setItem('securemind_db_questions_v3', JSON.stringify(questions));
     return newQ;
   },
 
@@ -451,7 +781,7 @@ export const apiService = {
 
     let questions = getStoredQuestions();
     questions = questions.filter(q => q.id !== questionId);
-    localStorage.setItem('securemind_db_questions', JSON.stringify(questions));
+    localStorage.setItem('securemind_db_questions_v3', JSON.stringify(questions));
     return true;
   },
 
@@ -514,7 +844,7 @@ export const apiService = {
 
     const allResults = getStoredResults();
     allResults.unshift(resultRecord);
-    localStorage.setItem('securemind_db_results_v2', JSON.stringify(allResults));
+    localStorage.setItem('securemind_db_results_v3', JSON.stringify(allResults));
 
     const users = getStoredUsers();
     const user = users.find(u => u.id === submission.user_id);
