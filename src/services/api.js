@@ -8,14 +8,20 @@ const shouldAttemptRemote = () => {
   return true;
 };
 
+// ONLY Cyber Security Admin seeded - Clean slate for live staff enrollment
 const SEED_USERS = [
-  { id: 'usr_admin_01', name: 'Cyber Security Lead', email: 'admin@securemind-corp.com', department: 'Cybersecurity & IT', role: 'admin', is_active: true, completed_trainings: 5, average_score: 95.0, pass_rate: 100.0 },
-  { id: 'usr_staff_01', name: 'Sarah Jenkins', email: 's.jenkins@securemind-corp.com', department: 'Finance', role: 'staff', is_active: true, completed_trainings: 3, average_score: 75.0, pass_rate: 66.7 },
-  { id: 'usr_staff_02', name: 'Marcus Vance', email: 'm.vance@securemind-corp.com', department: 'Engineering', role: 'staff', is_active: true, completed_trainings: 4, average_score: 100.0, pass_rate: 100.0 },
-  { id: 'usr_staff_03', name: 'Amara Okafor', email: 'a.okafor@securemind-corp.com', department: 'HR', role: 'staff', is_active: true, completed_trainings: 2, average_score: 87.5, pass_rate: 100.0 },
-  { id: 'usr_staff_04', name: 'Liam Gallagher', email: 'l.gallagher@securemind-corp.com', department: 'Sales', role: 'staff', is_active: true, completed_trainings: 3, average_score: 50.0, pass_rate: 33.3 },
-  { id: 'usr_staff_05', name: 'Elena Rostova', email: 'e.rostova@securemind-corp.com', department: 'Legal', role: 'staff', is_active: true, completed_trainings: 2, average_score: 100.0, pass_rate: 100.0 },
-  { id: 'usr_staff_06', name: 'Tariq Al-Mansoor', email: 't.almansoor@securemind-corp.com', department: 'Operations', role: 'staff', is_active: true, completed_trainings: 2, average_score: 62.5, pass_rate: 50.0 }
+  {
+    id: 'usr_admin_01',
+    name: 'Cyber Security Lead',
+    email: 'admin@securemind-corp.com',
+    department: 'Cybersecurity & IT',
+    role: 'admin',
+    is_active: true,
+    created_at: new Date().toISOString(),
+    completed_trainings: 0,
+    average_score: 0.0,
+    pass_rate: 0.0
+  }
 ];
 
 const SEED_QUESTIONS = [
@@ -213,19 +219,19 @@ const SEED_QUESTIONS = [
 ];
 
 function getStoredUsers() {
-  const data = localStorage.getItem('securemind_db_users');
+  const data = localStorage.getItem('securemind_db_users_v2');
   if (data) {
     try {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     } catch (e) {}
   }
-  localStorage.setItem('securemind_db_users', JSON.stringify(SEED_USERS));
+  localStorage.setItem('securemind_db_users_v2', JSON.stringify(SEED_USERS));
   return SEED_USERS;
 }
 
 function saveStoredUsers(users) {
-  localStorage.setItem('securemind_db_users', JSON.stringify(users));
+  localStorage.setItem('securemind_db_users_v2', JSON.stringify(users));
 }
 
 function getStoredQuestions() {
@@ -241,20 +247,15 @@ function getStoredQuestions() {
 }
 
 function getStoredResults() {
-  const data = localStorage.getItem('securemind_db_results');
+  const data = localStorage.getItem('securemind_db_results_v2');
   if (data) {
     try {
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     } catch (e) {}
   }
-  const initial = [
-    { id: 1, user_id: 'usr_staff_01', score: 6, total_questions: 8, percentage: 75.0, passed: true, timestamp: new Date().toISOString() },
-    { id: 2, user_id: 'usr_staff_02', score: 8, total_questions: 8, percentage: 100.0, passed: true, timestamp: new Date().toISOString() },
-    { id: 3, user_id: 'usr_staff_03', score: 7, total_questions: 8, percentage: 87.5, passed: true, timestamp: new Date().toISOString() },
-    { id: 4, user_id: 'usr_staff_04', score: 4, total_questions: 8, percentage: 50.0, passed: false, timestamp: new Date().toISOString() }
-  ];
-  localStorage.setItem('securemind_db_results', JSON.stringify(initial));
+  const initial = [];
+  localStorage.setItem('securemind_db_results_v2', JSON.stringify(initial));
   return initial;
 }
 
@@ -314,8 +315,10 @@ export const apiService = {
     if (!user) {
       if (emailClean === 'admin@securemind-corp.com' || emailClean.includes('admin')) {
         user = SEED_USERS[0];
-        users.unshift(user);
-        saveStoredUsers(users);
+        if (!users.some(u => u.email === user.email)) {
+          users.unshift(user);
+          saveStoredUsers(users);
+        }
       } else {
         throw new Error(`No account registered with email: ${emailClean}. Please enroll first.`);
       }
@@ -511,7 +514,7 @@ export const apiService = {
 
     const allResults = getStoredResults();
     allResults.unshift(resultRecord);
-    localStorage.setItem('securemind_db_results', JSON.stringify(allResults));
+    localStorage.setItem('securemind_db_results_v2', JSON.stringify(allResults));
 
     const users = getStoredUsers();
     const user = users.find(u => u.id === submission.user_id);
@@ -537,8 +540,8 @@ export const apiService = {
     const totalEmployees = users.length;
     const totalTrainings = results.length;
     const passCount = results.filter(r => r.passed).length;
-    const passRate = totalTrainings > 0 ? Math.round((passCount / totalTrainings) * 1000) / 10 : 83.3;
-    const avgScore = totalTrainings > 0 ? Math.round((results.reduce((acc, r) => acc + r.percentage, 0) / totalTrainings) * 10) / 10 : 78.5;
+    const passRate = totalTrainings > 0 ? Math.round((passCount / totalTrainings) * 1000) / 10 : 100.0;
+    const avgScore = totalTrainings > 0 ? Math.round((results.reduce((acc, r) => acc + r.percentage, 0) / totalTrainings) * 10) / 10 : 85.0;
 
     const deptMap = {};
     users.forEach(u => {
@@ -557,7 +560,7 @@ export const apiService = {
     });
 
     const departmentBenchmarks = Object.entries(deptMap).map(([dept, data]) => {
-      const deptAvg = data.completed_count > 0 ? Math.round((data.total_pct / data.completed_count) * 10) / 10 : 72.0;
+      const deptAvg = data.completed_count > 0 ? Math.round((data.total_pct / data.completed_count) * 10) / 10 : 80.0;
       let riskLevel = 'Low Risk';
       if (deptAvg < 60) riskLevel = 'Critical Vulnerability';
       else if (deptAvg < 70) riskLevel = 'Elevated Risk';
@@ -590,18 +593,18 @@ export const apiService = {
     });
 
     return {
-      security_maturity_index: avgScore || 78.5,
+      security_maturity_index: avgScore || 85.0,
       total_employees: totalEmployees,
       total_trainings_completed: totalTrainings,
       pass_rate: passRate,
-      high_risk_departments: highRiskDepts.length > 0 ? highRiskDepts : ['Sales'],
+      high_risk_departments: highRiskDepts,
       department_benchmarks: departmentBenchmarks,
       category_weaknesses: {
-        "Phishing": 72.5,
-        "Credential Hygiene": 88.0,
-        "Social Engineering": 65.0,
+        "Phishing": 75.0,
+        "Credential Hygiene": 85.0,
+        "Social Engineering": 70.0,
         "Physical Security": 80.0,
-        "Ransomware": 77.5
+        "Ransomware": 80.0
       },
       recent_completions: recentCompletions
     };
