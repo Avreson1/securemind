@@ -681,3 +681,6 @@ export const apiService = {
     const allResults = getStoredResults();
     allResults.unshift(resultRecord);
     saveStoredResults(allResults);
+  };
+  }
+};
