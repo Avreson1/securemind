@@ -1,0 +1,61 @@
+name: Build Desktop Application (.exe & .msi)
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build Windows Executables
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci || npm install
+
+      - name: Build React Application with Vite
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Build Electron Installers (.exe, .msi, portable)
+        working-directory: ./frontend
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win
+
+      - name: Upload Windows Installers as Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SecureMind-Windows-Installers
+          path: |
+            frontend/release/*.exe
+            frontend/release/*.msi
+            frontend/release/*.blockmap
+          retention-days: 30
+
+      - name: Create GitHub Release (On Git Tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            frontend/release/*.exe
+            frontend/release/*.msi
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
