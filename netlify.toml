@@ -1,6 +1,6 @@
 [build]
-  command = "cd frontend && npm install && npm run build"
-  publish = "frontend/dist"
+  command = "if [ -d \"frontend\" ]; then cd frontend && npm install && npm run build && cd .. && cp -r frontend/dist ./dist; else npm install && npm run build; fi"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
