@@ -189,12 +189,6 @@ export default function App() {
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                   <span><strong>Enrolled as Staff:</strong> {user.name} ({user.department}). Completing challenges automatically updates your department's Security Maturity Index.</span>
                 </div>
-                <button
-                  onClick={() => setIsOnboardingOpen(true)}
-                  className="text-cyan-400 hover:text-cyan-300 underline font-semibold"
-                >
-                  Switch Account
-                </button>
               </div>
             )}
 
@@ -225,12 +219,6 @@ export default function App() {
                   <p className="text-xs text-slate-400">
                     This portal requires <strong>Cyber Security Team (Admin)</strong> privileges. Standard staff accounts cannot view oversight telemetry.
                   </p>
-                  <button
-                    onClick={() => setIsOnboardingOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs"
-                  >
-                    Switch to Admin Account
-                  </button>
                 </div>
               )
             )}
