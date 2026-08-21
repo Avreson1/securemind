@@ -120,22 +120,11 @@ export default function Navigation({ activeTab, setActiveTab, user, onOpenOnboar
                   {isCyberAdmin ? '⚡ Cyber Team' : '👤 Staff'}
                 </span>
 
-                {/* Switch Account */}
-                <button
-                  type="button"
-                  onClick={onOpenOnboarding}
-                  className="text-slate-400 hover:text-cyan-300 p-1.5 hover:bg-slate-800 rounded-lg transition-colors flex items-center space-x-1"
-                  title="Switch or Enroll Another Account"
-                >
-                  <User className="w-4 h-4" />
-                  <span className="text-[11px] hidden md:inline">Switch</span>
-                </button>
-
                 {/* Explicit Logout Button */}
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="text-rose-400 hover:text-white p-1.5 px-2.5 bg-rose-950/40 hover:bg-rose-600 rounded-lg transition-all border border-rose-500/30 flex items-center space-x-1 font-bold text-xs"
+                  className="text-rose-400 hover:text-white p-1.5 px-3 bg-rose-950/40 hover:bg-rose-600 rounded-lg transition-all border border-rose-500/30 flex items-center space-x-1.5 font-bold text-xs"
                   title="Sign Out of Session"
                 >
                   <LogOut className="w-3.5 h-3.5" />
