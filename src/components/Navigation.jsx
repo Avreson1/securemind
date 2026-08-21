@@ -60,7 +60,7 @@ export default function Navigation({ activeTab, setActiveTab, user, onOpenOnboar
               <span>Knowledge Quizzes</span>
             </button>
 
-            {/* Cyber Team / Admin ONLY Links */}
+            {/* Cyber Security Team Exclusive Tabs */}
             {isCyberAdmin && (
               <>
                 <button
@@ -91,9 +91,9 @@ export default function Navigation({ activeTab, setActiveTab, user, onOpenOnboar
           </nav>
 
           {/* Right Side: User Profile & Role Indicator */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {user ? (
-              <div className="flex items-center space-x-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl">
+              <div className="flex items-center space-x-2 bg-slate-900/90 border border-slate-800 px-2.5 sm:px-3 py-1.5 rounded-xl">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
                   isCyberAdmin 
                     ? 'bg-purple-950 border border-purple-500/50 text-purple-300' 
@@ -112,7 +112,7 @@ export default function Navigation({ activeTab, setActiveTab, user, onOpenOnboar
                 </div>
 
                 {/* Role Badge */}
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border hidden sm:inline-block ${
                   isCyberAdmin
                     ? 'bg-purple-950/90 border-purple-500/50 text-purple-300 font-mono'
                     : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-300 font-mono'
@@ -120,27 +120,31 @@ export default function Navigation({ activeTab, setActiveTab, user, onOpenOnboar
                   {isCyberAdmin ? '⚡ Cyber Team' : '👤 Staff'}
                 </span>
 
-                               {/* Switch Account */}
+                {/* Switch Account */}
                 <button
+                  type="button"
                   onClick={onOpenOnboarding}
-                  className="text-slate-400 hover:text-cyan-300 p-1.5 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="text-slate-400 hover:text-cyan-300 p-1.5 hover:bg-slate-800 rounded-lg transition-colors flex items-center space-x-1"
                   title="Switch or Enroll Another Account"
                 >
                   <User className="w-4 h-4" />
+                  <span className="text-[11px] hidden md:inline">Switch</span>
                 </button>
 
-                {/* Logout Button */}
+                {/* Explicit Logout Button */}
                 <button
+                  type="button"
                   onClick={onLogout}
-                  className="text-rose-400 hover:text-rose-300 p-1.5 hover:bg-rose-950/50 rounded-lg transition-colors border border-transparent hover:border-rose-500/30 flex items-center space-x-1"
+                  className="text-rose-400 hover:text-white p-1.5 px-2.5 bg-rose-950/40 hover:bg-rose-600 rounded-lg transition-all border border-rose-500/30 flex items-center space-x-1 font-bold text-xs"
                   title="Sign Out of Session"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span className="text-[11px] font-bold hidden sm:inline">Logout</span>
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
               <button
+                type="button"
                 onClick={onOpenOnboarding}
                 className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all"
               >
@@ -172,7 +176,7 @@ export default function Navigation({ activeTab, setActiveTab, user, onOpenOnboar
                 onClick={() => setActiveTab('analytics')}
                 className={`px-2 py-1 rounded ${activeTab === 'analytics' ? 'text-purple-400 font-bold' : 'text-purple-300'}`}
               >
-                Cyber Oversight
+                Oversight
               </button>
               <button
                 onClick={() => setActiveTab('scenarios')}
