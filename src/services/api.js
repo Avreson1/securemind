@@ -869,32 +869,100 @@ export const apiService = {
 
     const totalEmployees = users.length;
     const totalTrainings = results.length;
-    const passCount = results.filter(r => r.passed).length;
-    const passRate = totalTrainings > 0 ? Math.round((passCount / totalTrainings) * 1000) / 10 : 100.0;
-    const avgScore = totalTrainings > 0 ? Math.round((results.reduce((acc, r) => acc + r.percentage, 0) / totalTrainings) * 10) / 10 : 85.0;
 
+    if (totalTrainings === 0) {
+      // Build pure 0% baseline department benchmarks for registered users
+      const deptMap = {};
+      users.forEach(u => {
+        if (!deptMap[u.department]) {
+          deptMap[u.department] = { total_staff: 0, completed_count: 0, total_pct: 0 };
+        }
+        deptMap[u.department].total_staff += 1;
+      });
+
+      const departmentBenchmarks = Object.entries(deptMap).map(([dept, data]) => ({
+        department: dept,
+        total_staff: data.total_staff,
+        completed_count: 0,
+        average_score: 0.0,
+        risk_level: 'Pending Assessment',
+        category_scores: {}
+      }));
+
+      return {
+        security_maturity_index: 0.0,
+        total_employees: totalEmployees,
+        total_trainings_completed: 0,
+        pass_rate: 0.0,
+        high_risk_departments: [],
+        department_benchmarks: departmentBenchmarks,
+        category_weaknesses: {
+          "Phishing": 0.0,
+          "Credential Hygiene": 0.0,
+          "Social Engineering": 0.0,
+          "Physical Security": 0.0,
+          "Ransomware": 0.0
+        },
+        recent_completions: []
+      };
+    }
+
+    const passCount = results.filter(r => r.passed).length;
+    const passRate = Math.round((passCount / totalTrainings) * 1000) / 10;
+    const avgScore = Math.round((results.reduce((acc, r) => acc + r.percentage, 0) / totalTrainings) * 10) / 10;
+
+    // Aggregate by department
     const deptMap = {};
     users.forEach(u => {
       if (!deptMap[u.department]) {
-        deptMap[u.department] = { total_staff: 0, completed_count: 0, total_pct: 0 };
+        deptMap[u.department] = { total_staff: 0, completed_count: 0, total_pct: 0, cat_stats: {} };
       }
       deptMap[u.department].total_staff += 1;
     });
 
+    const globalCatStats = {};
+
     results.forEach(r => {
       const user = users.find(u => u.id === r.user_id);
-      if (user && deptMap[user.department]) {
-        deptMap[user.department].completed_count += 1;
-        deptMap[user.department].total_pct += r.percentage;
+      const userDept = user ? user.department : 'General';
+      
+      if (!deptMap[userDept]) {
+        deptMap[userDept] = { total_staff: 1, completed_count: 0, total_pct: 0, cat_stats: {} };
+      }
+      deptMap[userDept].completed_count += 1;
+      deptMap[userDept].total_pct += r.percentage;
+
+      // Category breakdown from evaluations
+      if (Array.isArray(r.evaluations)) {
+        r.evaluations.forEach(ev => {
+          const cat = ev.category || 'General';
+          if (!globalCatStats[cat]) globalCatStats[cat] = { correct: 0, total: 0 };
+          globalCatStats[cat].total += 1;
+          if (ev.is_correct) globalCatStats[cat].correct += 1;
+
+          if (!deptMap[userDept].cat_stats[cat]) deptMap[userDept].cat_stats[cat] = { correct: 0, total: 0 };
+          deptMap[userDept].cat_stats[cat].total += 1;
+          if (ev.is_correct) deptMap[userDept].cat_stats[cat].correct += 1;
+        });
       }
     });
 
     const departmentBenchmarks = Object.entries(deptMap).map(([dept, data]) => {
-      const deptAvg = data.completed_count > 0 ? Math.round((data.total_pct / data.completed_count) * 10) / 10 : 80.0;
-      let riskLevel = 'Low Risk';
-      if (deptAvg < 60) riskLevel = 'Critical Vulnerability';
-      else if (deptAvg < 70) riskLevel = 'Elevated Risk';
-      else if (deptAvg < 80) riskLevel = 'Moderate Risk';
+      const deptAvg = data.completed_count > 0 ? Math.round((data.total_pct / data.completed_count) * 10) / 10 : 0.0;
+      let riskLevel = 'Pending Assessment';
+      if (data.completed_count > 0) {
+        if (deptAvg < 50) riskLevel = 'Critical Vulnerability';
+        else if (deptAvg < 70) riskLevel = 'Elevated Risk';
+        else if (deptAvg < 85) riskLevel = 'Moderate Risk';
+        else riskLevel = 'Low Risk';
+      }
+
+      const deptCatScores = {};
+      Object.entries(data.cat_stats).forEach(([cat, st]) => {
+        if (st.total > 0) {
+          deptCatScores[cat] = Math.round((st.correct / st.total) * 1000) / 10;
+        }
+      });
 
       return {
         department: dept,
@@ -902,18 +970,27 @@ export const apiService = {
         completed_count: data.completed_count,
         average_score: deptAvg,
         risk_level: riskLevel,
-        category_scores: { "Phishing": deptAvg, "Credential Hygiene": 80.0, "Social Engineering": 75.0 }
+        category_scores: deptCatScores
       };
     });
 
-    const highRiskDepts = departmentBenchmarks.filter(d => d.average_score < 70).map(d => d.department);
+    const highRiskDepts = departmentBenchmarks
+      .filter(d => d.completed_count > 0 && d.average_score < 70)
+      .map(d => d.department);
+
+    const categoryWeaknesses = {};
+    Object.entries(globalCatStats).forEach(([cat, st]) => {
+      if (st.total > 0) {
+        categoryWeaknesses[cat] = Math.round((st.correct / st.total) * 1000) / 10;
+      }
+    });
 
     const recentCompletions = results.slice(0, 10).map(r => {
       const user = users.find(u => u.id === r.user_id);
       return {
         id: r.id,
         user_name: user ? user.name : 'Corporate Employee',
-        department: user ? user.department : 'Operations',
+        department: user ? user.department : 'General',
         score: r.score,
         total: r.total_questions,
         percentage: r.percentage,
@@ -923,19 +1000,13 @@ export const apiService = {
     });
 
     return {
-      security_maturity_index: avgScore || 85.0,
+      security_maturity_index: avgScore,
       total_employees: totalEmployees,
       total_trainings_completed: totalTrainings,
       pass_rate: passRate,
       high_risk_departments: highRiskDepts,
       department_benchmarks: departmentBenchmarks,
-      category_weaknesses: {
-        "Phishing": 75.0,
-        "Credential Hygiene": 85.0,
-        "Social Engineering": 70.0,
-        "Physical Security": 80.0,
-        "Ransomware": 80.0
-      },
+      category_weaknesses: categoryWeaknesses,
       recent_completions: recentCompletions
     };
   }
